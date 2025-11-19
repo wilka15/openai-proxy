@@ -1,54 +1,34 @@
-const API_URL = "https://openai-proxy-ucgy.onrender.com/v1/chat/completions";
+import express from "express";
+import fetch from "node-fetch";
+import cors from "cors";
 
-async function sendMessage() {
-    const input = document.getElementById("userInput");
-    const text = input.value.trim();
-    if (!text) return;
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-    addMessage(text, "user");
-    input.value = "";
+app.get("/", (req, res) => {
+    res.send("Proxy is running");
+});
 
+app.post("/v1/chat/completions", async (req, res) => {
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
             },
-            body: JSON.stringify({
-                model: "gpt-4o-mini",
-                messages: [{ role: "user", content: text }]
-            })
+            body: JSON.stringify(req.body)
         });
 
         const data = await response.json();
+        res.json(data);
 
-        if (!data.choices || !data.choices[0]) {
-            addMessage("Ошибка: неправильный JSON от сервера", "ai");
-            console.log("Сырой ответ:", data);
-            return;
-        }
-
-        const ai = data.choices[0].message.content;
-        addMessage(ai, "ai");
-        speak(ai);
-
-    } catch (err) {
-        addMessage("Ошибка соединения с прокси", "ai");
-        console.error(err);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Proxy failed" });
     }
-}
+});
 
-function addMessage(msg, sender) {
-    const chat = document.getElementById("chat");
-    const div = document.createElement("div");
-    div.className = "msg " + sender;
-    div.textContent = msg;
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-}
-
-function speak(text) {
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = "ru-RU";
-    window.speechSynthesis.speak(utter);
-}
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log("Proxy started on", PORT));
