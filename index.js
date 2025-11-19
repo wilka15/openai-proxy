@@ -1,27 +1,30 @@
-import express from "express";
-import cors from "cors";
-import fetch from "node-fetch";
+async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const text = input.value.trim();
+    if (!text) return;
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+    addMessage(text, "user");
+    input.value = "";
 
-app.post("/v1/responses", async (req, res) => {
-  try {
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify(req.body)
+    const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            model: "gpt-4o-mini",
+            input: text
+        })
     });
 
     const data = await response.json();
-    res.status(response.status).json(data);
-  } catch (error) {
-    res.status(500).json({ error: "Proxy error", details: error.message });
-  }
-});
 
-app.listen(10000, () => console.log("Proxy running on port 10000"));
+    if (!data.output) {
+        addMessage("Ошибка: сервер не ответил корректно", "ai");
+        return;
+    }
+
+    const ai = data.output[0].content[0].text;
+    addMessage(ai, "ai");
+    speak(ai);
+}
