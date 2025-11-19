@@ -6,26 +6,31 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post("/v1/chat/completions", async (req, res) => {
+const OPENAI_KEY = process.env.OPENAI_KEY; // Добавить на Render!
+
+app.post("/v1/responses", async (req, res) => {
     try {
-        const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        const body = req.body;
+
+        const openaiResponse = await fetch("https://api.openai.com/v1/responses", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + process.env.OPENAI_API_KEY
+                "Authorization": `Bearer ${OPENAI_KEY}`,
+                "Content-Type": "application/json"
             },
-            body: JSON.stringify(req.body)
+            body: JSON.stringify(body)
         });
 
-        const data = await openaiRes.json();
-        res.status(openaiRes.status).send(data);
+        const data = await openaiResponse.json();
+        res.json(data);
 
-    } catch (err) {
-        console.error(err);
-        res.status(500).send({ error: "Proxy error" });
+    } catch (error) {
+        console.error("Proxy error:", error);
+        res.status(500).json({ error: "proxy_failed", details: error.toString() });
     }
 });
 
-app.listen(3000, () => {
-    console.log("Proxy running on port 3000");
-});
+// Проверка что сервер работает
+app.get("/", (_, res) => res.send("Proxy is running"));
+
+app.listen(10000, () => console.log("Proxy running on port 10000"));
