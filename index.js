@@ -14,7 +14,7 @@ app.get("/", (req, res) => {
 // Основной маршрут OpenAI
 app.post("/v1/chat/completions", async (req, res) => {
     try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        const response = await fetch("https://smarthub-proxy.onrender.com/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
