@@ -1,39 +1,22 @@
-import express from "express";
-import cors from "cors";
-import fetch from "node-fetch";
-import dotenv from "dotenv";
+async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const text = input.value.trim();
+    if (!text) return;
 
-dotenv.config();
+    addMessage(text, "user");
+    input.value = "";
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-const PORT = process.env.PORT || 10000;
-const OPENAI_KEY = process.env.OPENAI_API_KEY;
-
-app.get("/", (req, res) => {
-  res.send("Proxy is running");
-});
-
-app.post("/v1/responses", async (req, res) => {
-  try {
-    const response = await fetch("https://openai-proxy-ucgy.onrender.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_KEY}`
-      },
-      body: JSON.stringify(req.body)
+    const res = await fetch("https://openai-proxy-ucgy.onrender.com/v1/responses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            model: "gpt-4.1-mini",
+            input: text
+        })
     });
 
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: "Ошибка соединения с OpenAI", details: err });
-  }
-});
+    const data = await res.json();
 
-app.listen(PORT, () =>
-  console.log(`Proxy server running on port ${PORT}`)
-);
+    const ai = data.output_text || "Ошибка ответа";
+    addMessage(ai, "ai");
+}
