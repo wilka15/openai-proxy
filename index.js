@@ -18,7 +18,7 @@ app.get("/", (req, res) => {
 
 app.post("/v1/responses", async (req, res) => {
   try {
-    const response = await fetch("https://api.openai.com/v1/responses", {
+    const response = await fetch("https://openai-proxy-ucgy.onrender.com/v1/responses", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
