@@ -30,10 +30,7 @@ app.post("/v1/responses", async (req, res) => {
     const data = await response.json();
     res.json(data);
   } catch (err) {
-    res.status(500).json({
-      error: "Ошибка соединения с OpenAI",
-      details: err.message
-    });
+    res.status(500).json({ error: "Ошибка соединения с OpenAI", details: err.message });
   }
 });
 
